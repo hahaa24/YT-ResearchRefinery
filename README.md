@@ -7,13 +7,14 @@ A self-hostable, secure, and user-friendly web application that extracts transcr
 ### 🔧 LLM Configuration
 - **Multiple Provider Support**: Configure OpenAI, Anthropic (Claude), or Ollama (local)
 - **Secure API Key Management**: Environment-based configuration with no database storage
-- **Cost Management**: Set maximum cost limits to prevent unexpected charges
+- **Cost Management**: Set maximum cost limits to prevent unexpected charges (default: $0.10)
 
 ### 📹 Single Video Processing
 - **Transcript Extraction**: Automatically fetch YouTube video transcripts
 - **AI-Powered Summaries**: Generate concise, comprehensive summaries
 - **Optional Cleaning**: Remove sponsorships, filler words, and YouTube-specific content
 - **Download Support**: Save transcripts and summaries as Markdown files
+- **Real-time Progress**: Enhanced progress indicators during processing
 
 ### 🔬 Research Clusters
 - **Multi-Video Analysis**: Process multiple YouTube videos on a single topic
@@ -31,6 +32,11 @@ A self-hostable, secure, and user-friendly web application that extracts transcr
 - **WikiLinks Support**: Automatic `[[WikiLinks]]` generation for knowledge graphs
 - **Obsidian Integration**: Perfect for Obsidian vaults and knowledge management
 - **Local Storage**: All files saved to `./output` directory
+
+### 🔒 Security & SSL
+- **SSL/HTTPS Support**: Built-in Let's Encrypt integration for secure deployment
+- **Environment-based Configuration**: No database storage of sensitive data
+- **Cost Controls**: Built-in cost limits prevent unexpected charges
 
 ## 🏗️ Architecture
 
@@ -71,10 +77,12 @@ A self-hostable, secure, and user-friendly web application that extracts transcr
    - Create `.env` file from template
    - Configure your preferred port
    - Set up API keys
+   - Configure SSL/HTTPS (optional)
    - Build and start the application
 
 3. **Access the application**
    - Open your browser to `http://localhost:8000` (or your configured port)
+   - For SSL: `https://yourdomain.com` (after certificate setup)
    - Go to Settings to configure your LLM provider
    - Start processing YouTube videos!
 
@@ -107,7 +115,7 @@ If you prefer manual setup:
 3. **Choose options**:
    - Check "Clean transcript" to remove filler words and sponsorships
 4. **Click "Process Video"**
-5. **Wait for processing** (progress updates automatically)
+5. **Watch real-time progress** with enhanced progress indicators
 6. **Download results** when complete
 
 ### Research Clusters
@@ -119,8 +127,9 @@ If you prefer manual setup:
    - Click "Create Research Cluster"
 
 2. **Monitor progress**:
-   - Watch real-time progress updates
+   - Watch real-time progress updates with detailed status
    - See which videos are being processed
+   - Track overall completion percentage
 
 3. **Generate synthesis**:
    - Once all transcripts are ready, click "Generate Synthesis Report"
@@ -142,7 +151,7 @@ If you prefer manual setup:
    - Enter them securely in the settings page
 
 3. **Set Cost Limits**:
-   - Configure maximum cost per operation
+   - Configure maximum cost per operation (default: $0.10)
    - Prevents unexpected charges
 
 ## 🔧 Configuration
@@ -156,8 +165,12 @@ If you prefer manual setup:
 | `OPENAI_API_KEY` | OpenAI API key | - |
 | `ANTHROPIC_API_KEY` | Anthropic API key | - |
 | `OLLAMA_BASE_URL` | Ollama server URL | `http://localhost:11434` |
-| `MAX_COST_LIMIT` | Maximum cost per operation (USD) | `10.00` |
+| `MAX_COST_LIMIT` | Maximum cost per operation (USD) | `0.10` |
 | `YOUTUBE_API_KEY` | YouTube API key (optional) | - |
+| `SSL_ENABLED` | Enable SSL/HTTPS | `false` |
+| `SSL_CERT_PATH` | SSL certificate path | - |
+| `SSL_KEY_PATH` | SSL private key path | - |
+| `DOMAIN_NAME` | Domain name for SSL | - |
 
 ### API Key Setup
 
@@ -176,6 +189,19 @@ If you prefer manual setup:
 2. Pull a model: `ollama pull llama2`
 3. Start Ollama service
 4. Configure in `.env`: `OLLAMA_BASE_URL=http://localhost:11434`
+
+### SSL/HTTPS Setup
+
+1. **Configure domain** in setup script or `.env` file
+2. **Install Certbot**:
+   ```bash
+   sudo apt-get install certbot
+   ```
+3. **Generate certificates**:
+   ```bash
+   sudo certbot certonly --standalone -d yourdomain.com
+   ```
+4. **Start application** - SSL will be automatically enabled
 
 ## 📁 Project Structure
 
@@ -207,6 +233,7 @@ If you prefer manual setup:
 - **Environment Variables**: Sensitive data managed via `.env` file
 - **Local Processing**: Option to use local Ollama models for complete privacy
 - **Cost Controls**: Built-in cost limits prevent unexpected charges
+- **SSL Support**: Built-in HTTPS support with Let's Encrypt
 
 ## 🛠️ Development
 
@@ -256,6 +283,11 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 - Ensure Redis is running: `docker-compose ps`
 - Check worker logs: `docker-compose logs worker`
 - Restart services: `docker-compose restart`
+
+**SSL certificate issues**
+- Verify domain points to server
+- Check certificate paths in `.env`
+- Ensure certificates are readable by Docker
 
 ### Logs and Debugging
 

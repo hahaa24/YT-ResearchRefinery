@@ -2,17 +2,16 @@ version: '3.8'
 
 services:
   redis:
-    image: redis:7-alpine
+    image: "redis:alpine"
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
-    restart: unless-stopped
+      - redis-data:/data
 
   web-app:
     build: .
     ports:
-      - "${APP_PORT:-8000}:8000"
+      - "8000:${PORT:-8000}"
     environment:
       - REDIS_URL=redis://redis:6379
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -28,10 +27,11 @@ services:
       - SSL_CERT_PATH=${SSL_CERT_PATH}
       - SSL_KEY_PATH=${SSL_KEY_PATH}
     volumes:
+      - ./src:/app/src
       - ./output:/app/output
       # Mount SSL certificates if enabled
-      - ${SSL_CERT_PATH:-/dev/null}:/app/ssl/cert.pem:ro
-      - ${SSL_KEY_PATH:-/dev/null}:/app/ssl/key.pem:ro
+      - ${SSL_CERT_PATH:-/dev/null}:/app/cert.pem:ro
+      - ${SSL_KEY_PATH:-/dev/null}:/app/key.pem:ro
     depends_on:
       - redis
     restart: unless-stopped
@@ -58,4 +58,4 @@ services:
     command: celery -A src.worker.celery worker --loglevel=info
 
 volumes:
-  redis_data: 
+  redis-data: 

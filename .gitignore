@@ -55,7 +55,7 @@ logs/
 
 # Output directory
 output/
-
+ProjectPlan.md
 # Redis dump
 dump.rdb
 
