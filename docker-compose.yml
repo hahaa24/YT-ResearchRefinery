@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  web-app:
+    build: .
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - MAX_COST_LIMIT=${MAX_COST_LIMIT:-0.10}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - OUTPUT_DIR=${OUTPUT_DIR:-./output}
+      - SSL_ENABLED=${SSL_ENABLED:-false}
+      - SSL_CERT_PATH=${SSL_CERT_PATH}
+      - SSL_KEY_PATH=${SSL_KEY_PATH}
+    volumes:
+      - ./output:/app/output
+      # Mount SSL certificates if enabled
+      - ${SSL_CERT_PATH:-/dev/null}:/app/ssl/cert.pem:ro
+      - ${SSL_KEY_PATH:-/dev/null}:/app/ssl/key.pem:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - MAX_COST_LIMIT=${MAX_COST_LIMIT:-0.10}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - OUTPUT_DIR=${OUTPUT_DIR:-./output}
+    volumes:
+      - ./output:/app/output
+    depends_on:
+      - redis
+    restart: unless-stopped
+    command: celery -A src.worker.celery worker --loglevel=info
+
+volumes:
+  redis_data: 
